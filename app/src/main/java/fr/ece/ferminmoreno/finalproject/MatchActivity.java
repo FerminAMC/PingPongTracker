@@ -1,21 +1,31 @@
 package fr.ece.ferminmoreno.finalproject;
 
 import android.graphics.Color;
-        import android.support.v7.app.AppCompatActivity;
-        import android.os.Bundle;
-        import android.view.View;
-        import android.widget.AdapterView;
-        import android.widget.ArrayAdapter;
-        import android.widget.Button;
-        import android.widget.EditText;
-        import android.widget.Spinner;
-        import android.widget.TextView;
-        import android.widget.Toast;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.text.TextWatcher;
 
-        import java.util.ArrayList;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
         import java.util.List;
 
-public class MatchActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class MatchActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
     Spinner style1;
     Spinner style2;
@@ -43,7 +53,13 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
     Button scorePlus1;
     Button scorePlus2;
 
+    EditText player1;
+    EditText player2;
+
     private String matchKey;
+    private DatabaseReference mDatabase;
+    private String mUserId;
+    private Match match;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,16 +67,30 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         setContentView(R.layout.activity_match);
 
         matchKey = getIntent().getStringExtra("EXTRA_MATCH_ID");
+        mUserId = getIntent().getStringExtra("EXTRA_USER_ID");
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         set1 = (EditText) findViewById(R.id.setsValue1);
         set2 = (EditText) findViewById(R.id.setsValue2);
         score1 = (EditText) findViewById(R.id.scoreValue1);
         score2 = (EditText) findViewById(R.id.scoreValue2);
 
-        setValue1 = Integer.parseInt(set1.getText().toString());
-        setValue2 = Integer.parseInt(set2.getText().toString());
-        scoreValue1 = Integer.parseInt(score1.getText().toString());
-        scoreValue2 = Integer.parseInt(score2.getText().toString());
+        player1 = (EditText) findViewById(R.id.playerName1);
+        player2 = (EditText) findViewById(R.id.playerName2);
+
+        // Attach a listener to read the data at our posts reference
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                match = dataSnapshot.getValue(Match.class);
+                setValues(match);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
 
         setMinus1 = (Button) findViewById(R.id.setMinus1);
         setMinus2 = (Button) findViewById(R.id.setMinus2);
@@ -75,6 +105,7 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
             @Override
             public void onClick(View v) {
                 point(0,-1);
+
             }
         });
         setMinus2.setOnClickListener(new View.OnClickListener() {
@@ -175,6 +206,38 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         red2.setAdapter(rubberRedAdapter);
         black1.setAdapter(rubberBlackAdapter);
         black2.setAdapter(rubberBlackAdapter);
+
+        player1.addTextChangedListener ( new TextWatcher () {
+
+            public void afterTextChanged ( Editable s ) {
+                mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                        .child("player1").setValue(s.toString());
+            }
+
+            public void beforeTextChanged ( CharSequence s, int start, int count, int after ) {
+            }
+
+            public void onTextChanged ( CharSequence s, int start, int before, int count ) {
+
+            }
+        });
+
+        player2.addTextChangedListener ( new TextWatcher () {
+
+            public void afterTextChanged ( Editable s ) {
+                mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                        .child("player2").setValue(s.toString());
+                Log.d("TEXT_CHANGE", s.toString());
+            }
+
+            public void beforeTextChanged ( CharSequence s, int start, int count, int after ) {
+
+            }
+
+            public void onTextChanged ( CharSequence s, int start, int before, int count ) {
+
+            }
+        });
     }
 
     @Override
@@ -247,8 +310,38 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
 
     public void updateValues() {
         set1.setText(String.valueOf(setValue1));
+        match.setSet1(setValue1);
+
         set2.setText(String.valueOf(setValue2));
+        match.setSet2(setValue2);
+
         score1.setText(String.valueOf(scoreValue1));
+        match.setScore1(scoreValue1);
+
         score2.setText(String.valueOf(scoreValue2));
+        match.setScore2(scoreValue2);
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey).setValue(match);
     }
+
+    public void setValues(Match match){
+        setValue1 = match.getSet1();
+        set1.setText(String.valueOf(setValue1));
+
+        setValue2 = match.getSet2();
+        set2.setText(String.valueOf(setValue2));
+
+        scoreValue1 = match.getScore1();
+        score1.setText(String.valueOf(scoreValue1));
+
+        scoreValue2 = match.getScore2();
+        score2.setText(String.valueOf(scoreValue2));
+
+        if((!String.valueOf(player1.getText()).equals(match.getPlayer1())) ||
+                (!String.valueOf(player2.getText()).equals(match.getPlayer2()))) {
+            player1.setText(match.getPlayer1());
+            player2.setText(match.getPlayer2());
+        }
+    }
+
 }
