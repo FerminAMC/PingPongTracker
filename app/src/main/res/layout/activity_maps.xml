@@ -50,6 +50,8 @@
         android:id="@+id/backMap"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:background="@drawable/button_shape_green"
+        android:src="@drawable/ic_done_black_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.052"
         app:layout_constraintLeft_toLeftOf="parent"
