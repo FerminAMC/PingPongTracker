@@ -32,4 +32,6 @@
     <string name="paddle">Palette</string>
     <string name="player_1">Joueur 1</string>
     <string name="player_2">Joueur 2</string>
+    <!-- Chat -->
+    <string name="send">Envoyer</string>
 </resources>
