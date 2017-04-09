@@ -1,8 +1,18 @@
 package fr.ece.ferminmoreno.finalproject;
 
+import android.*;
+import android.Manifest;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -14,6 +24,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +37,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MatchActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
@@ -55,6 +71,13 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
     Button setPlus2;
     Button scorePlus1;
     Button scorePlus2;
+    private ImageButton btnCam;
+
+    private String mCurrentPhotoPath;
+    private ImageView capturedImage;
+
+    boolean CameraAccepted = true;
+    boolean WriteAccepted = true;
 
     EditText player1;
     EditText player2;
@@ -93,7 +116,7 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         }
 
         // Remove items via the Button
-        final Button buttonRemove = (Button) findViewById(R.id.removeButton);
+        final ImageButton buttonRemove = (ImageButton) findViewById(R.id.removeButton);
         buttonRemove.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent(mCtx, MainActivity.class);
@@ -104,7 +127,7 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         });
 
         // Open maps
-        final Button buttonMaps = (Button) findViewById(R.id.mapsButton);
+        final ImageButton buttonMaps = (ImageButton) findViewById(R.id.mapsButton);
         buttonMaps.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent(mCtx, MapsActivity.class);
@@ -140,6 +163,26 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         setPlus2 = (Button) findViewById(R.id.setPlus2);
         scorePlus1 = (Button) findViewById(R.id.scorePlus1);
         scorePlus2 = (Button) findViewById(R.id.scorePlus2);
+        btnCam = (ImageButton) findViewById(R.id.picButton);
+
+        capturedImage = (ImageView) findViewById(R.id.capturedImage);
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_DENIED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_DENIED ) {
+            requestPermissions(new String[] {android.Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE}, 200);
+        }
+
+        btnCam.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(CameraAccepted && WriteAccepted)
+                    openCamera();
+            }
+        });
+
 
         setMinus1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -288,6 +331,55 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
 
     }
 
+    private void openCamera() {
+        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        if(intent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error :(
+                CharSequence text = "Error";
+                Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+            }
+            if (photoFile != null) {
+                Uri photoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        new ContentValues());
+
+                //intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, photoUri);
+                startActivityForResult(intent, 1);
+            }
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            capturedImage.setImageBitmap(imageBitmap);
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        //Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG" + timeStamp + "_";
+
+        File newDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        File image = null;
+
+        image = File.createTempFile(
+                imageFileName,  /*prefix*/
+                ".jpg",         /*suffix*/
+                newDir      /*directory*/
+        );
+
+        //Save a file: path for use with ACTION_VIEW Intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         // On selecting a spinner item
@@ -431,5 +523,21 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+
+        switch(permsRequestCode){
+            case 200:
+                CameraAccepted = grantResults[0]==PackageManager.PERMISSION_GRANTED;
+                WriteAccepted = grantResults[1]==PackageManager.PERMISSION_GRANTED;
+                break;
+
+
+
+        }
+
     }
 }
