@@ -123,7 +123,7 @@ public class ChatActivity extends AppCompatActivity {
 
     public void updateMessage(DataSnapshot dataSnapshot){
         chatEmail = (String) dataSnapshot.child("name").getValue();
-        chatMessage = (String) dataSnapshot.child("messageText").getValue();
+        chatMessage = (String) dataSnapshot.child("text").getValue();
         receivedMsg.append(chatEmail + ": " + chatMessage + "\n\n");
     }
 }
