@@ -121,7 +121,8 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
                     match = dataSnapshot.getValue(Match.class);
                     setValues(match);
                 } else{
-                    match = new Match("","",0,0,0,0,0,0);
+                    match = new Match("","",0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 1, 1);
                     setValues(match);
                 }
             }

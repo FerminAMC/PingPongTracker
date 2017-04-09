@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">FinalProject</string>
+    <string name="app_name">Final Project</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -21,7 +22,15 @@
     <string name="add_item">Add New Match</string>
     <string name="delete_item">Delete Match</string>
     <string name="action_logout">Logout</string>
-    <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_maps">Map</string>
     <string name="open_maps">View Location</string>
+
+
+    <!-- Matches -->
+    <string name="score">Score</string>
+    <string name="set">Set</string>
+    <string name="style">Style</string>
+    <string name="paddle">Paddle</string>
+    <string name="player_1">Player 1</string>
+    <string name="player_2">Player 2</string>
 </resources>

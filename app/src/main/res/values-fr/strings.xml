@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Projet Final</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Paramètres</string>
+
+    <!-- LogIn strings-->
+    <string name="password_hint">Mot de passe</string>
+    <string name="email_hint">Email</string>
+    <string name="sign_up_button_label">Inscrire</string>
+    <string name="signup_error_message">Assurez-vous de saisir une adresse e-mail et un mot de passe!</string>
+    <string name="signup_error_title">Erreur!</string>
+    <string name="signup_success">Compte créé avec succès! Vous pouvez maintenant vous connecter.</string>
+    <string name="login_error_message">Assurez-vous de saisir une adresse e-mail et un mot de passe!</string>
+    <string name="login_error_title">Erreur!</string>
+    <string name="login_button_label">Identifier</string>
+    <string name="sign_up_text">Inscrire!</string>
+    <string name="title_activity_login">Se connecter</string>
+    <string name="add_item">Ajouter un nouveau match</string>
+    <string name="delete_item">Supprimer le match</string>
+    <string name="action_logout">Connectez - Out</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="open_maps">Voir Emplacement</string>
+
+    <!-- Matches -->
+    <string name="score">Points</string>
+    <string name="set">Set</string>
+    <string name="style">Style</string>
+    <string name="paddle">Palette</string>
+    <string name="player_1">Joueur 1</string>
+    <string name="player_2">Joueur 2</string>
+</resources>
