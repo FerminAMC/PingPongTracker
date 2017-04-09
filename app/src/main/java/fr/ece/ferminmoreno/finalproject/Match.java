@@ -2,7 +2,6 @@ package fr.ece.ferminmoreno.finalproject;
 
 public class Match {
 
-    private String title;
     private String player1;
     private String player2;
     private int set1;
@@ -14,9 +13,8 @@ public class Match {
 
     public Match() {}
 
-    public Match(String title, String player1, String player2, int set1, int set2, int score1,
+    public Match(String player1, String player2, int set1, int set2, int score1,
                  int score2, double latitude, double longitude) {
-        this.title = title;
         this.player1 = player1;
         this.player2 = player2;
         this.set1 = set1;
@@ -91,11 +89,4 @@ public class Match {
         this.longitude = longitude;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
 }

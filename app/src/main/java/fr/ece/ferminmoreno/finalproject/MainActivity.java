@@ -1,9 +1,11 @@
 package fr.ece.ferminmoreno.finalproject;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -51,15 +53,6 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
         // Initialize Firebase Auth and Database Reference
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
@@ -75,13 +68,11 @@ public class MainActivity extends AppCompatActivity
             final ListView listView = (ListView) findViewById(R.id.listView);
 
             // Add items via the Button and EditText at the bottom of the view.
-            final EditText text = (EditText) findViewById(R.id.todoText);
             final Button button = (Button) findViewById(R.id.addButton);
             button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    Match match = new Match(text.getText().toString(), "P1","P2", 1, 1, 1, 1, 1, 1);
+                    Match match = new Match("P1","P2", 0, 0, 0, 0, 0, 0);
                     mDatabase.child("users").child(mUserId).child("matches").push().setValue(match);
-                    text.setText("");
                 }
             });
 
@@ -149,16 +140,6 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_new_match) {
-            // Handle the camera action
-        } else if (id == R.id.nav_match) {
-
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_settings) {
-
-        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

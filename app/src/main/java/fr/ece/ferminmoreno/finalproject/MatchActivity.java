@@ -1,11 +1,14 @@
 package fr.ece.ferminmoreno.finalproject;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -23,7 +26,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-        import java.util.List;
+import java.util.List;
 
 public class MatchActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
@@ -60,15 +63,20 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
     private DatabaseReference mDatabase;
     private String mUserId;
     private Match match;
+    private Context mCtx;
+    private boolean aux;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_match);
 
+        aux = false;
         matchKey = getIntent().getStringExtra("EXTRA_MATCH_ID");
         mUserId = getIntent().getStringExtra("EXTRA_USER_ID");
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mCtx = this;
 
         set1 = (EditText) findViewById(R.id.setsValue1);
         set2 = (EditText) findViewById(R.id.setsValue2);
@@ -78,13 +86,44 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         player1 = (EditText) findViewById(R.id.playerName1);
         player2 = (EditText) findViewById(R.id.playerName2);
 
+        // Back button
+        if(getSupportActionBar() != null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        // Remove items via the Button
+        final Button buttonRemove = (Button) findViewById(R.id.removeButton);
+        buttonRemove.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(mCtx, MainActivity.class);
+                startActivity(intent);
+                mDatabase.child("users").child(mUserId).child("matches").child(matchKey).removeValue();
+                aux = true;
+            }
+        });
+
+        // Open maps
+        final Button buttonMaps = (Button) findViewById(R.id.mapsButton);
+        buttonMaps.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(mCtx, MapsActivity.class);
+                startActivity(intent);
+            }
+        });
+
         // Attach a listener to read the data at our posts reference
         mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
                 .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                match = dataSnapshot.getValue(Match.class);
-                setValues(match);
+                if(!aux) {
+                    match = dataSnapshot.getValue(Match.class);
+                    setValues(match);
+                } else{
+                    match = new Match("","",0,0,0,0,0,0);
+                    setValues(match);
+                }
             }
 
             @Override
@@ -210,8 +249,10 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         player1.addTextChangedListener ( new TextWatcher () {
 
             public void afterTextChanged ( Editable s ) {
-                mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
-                        .child("player1").setValue(s.toString());
+                if(!aux) {
+                    mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                            .child("player1").setValue(s.toString());
+                }
             }
 
             public void beforeTextChanged ( CharSequence s, int start, int count, int after ) {
@@ -225,9 +266,11 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         player2.addTextChangedListener ( new TextWatcher () {
 
             public void afterTextChanged ( Editable s ) {
-                mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
-                        .child("player2").setValue(s.toString());
-                Log.d("TEXT_CHANGE", s.toString());
+                if(!aux) {
+                    mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                            .child("player2").setValue(s.toString());
+                    Log.d("TEXT_CHANGE", s.toString());
+                }
             }
 
             public void beforeTextChanged ( CharSequence s, int start, int count, int after ) {
@@ -344,4 +387,12 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         }
     }
 
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == android.R.id.home){
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
