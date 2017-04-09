@@ -79,7 +79,8 @@ public class MainActivity extends AppCompatActivity
             final Button button = (Button) findViewById(R.id.addButton);
             button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    Match match = new Match(text.getText().toString(), "P1","P2", 1, 1, 1, 1, 1, 1);
+                    Match match = new Match(text.getText().toString(), "P1","P2", 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 1, 1);
                     mDatabase.child("users").child(mUserId).child("matches").push().setValue(match);
                     text.setText("");
                 }

@@ -238,6 +238,10 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
 
             }
         });
+
+
+
+
     }
 
     @Override
@@ -245,9 +249,32 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         // On selecting a spinner item
         String item = parent.getItemAtPosition(position).toString();
 
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("style1").setValue(style1.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("style2").setValue(style2.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("red1").setValue(red1.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("red2").setValue(red2.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("black1").setValue(black1.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("black2").setValue(black2.getSelectedItemPosition());
+
+
+
         String checkRed = parent.getItemAtPosition(0).toString();
         if (checkRed.equals("Red"))
             ((TextView) view).setTextColor(Color.RED);
+
+
 
         // Showing selected spinner item
         // Toast.makeText(parent.getContext(), "Selected: " + item, Toast.LENGTH_LONG).show();
@@ -342,6 +369,15 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
             player1.setText(match.getPlayer1());
             player2.setText(match.getPlayer2());
         }
+
+        style1.setSelection(match.getStyle1());
+        style2.setSelection(match.getStyle2());
+        red1.setSelection(match.getRed1());
+        red2.setSelection(match.getRed2());
+        black1.setSelection(match.getBlack1());
+        black2.setSelection(match.getBlack2());
+
+
     }
 
 }
