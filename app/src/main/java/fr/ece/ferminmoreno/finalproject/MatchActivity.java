@@ -88,6 +88,7 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
     private String matchKey;
     private DatabaseReference mDatabase;
     private String mUserId;
+    private String mUserEmail;
     private Match match;
     private Context mCtx;
     private boolean aux;
@@ -101,6 +102,7 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         aux = false;
         matchKey = getIntent().getStringExtra("EXTRA_MATCH_ID");
         mUserId = getIntent().getStringExtra("EXTRA_USER_ID");
+        mUserEmail = getIntent().getStringExtra("EXTRA_USER_EMAIL");
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mCtx = this;
 
@@ -126,6 +128,16 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
                 startActivity(intent);
                 mDatabase.child("users").child(mUserId).child("matches").child(matchKey).removeValue();
                 aux = true;
+            }
+        });
+
+        // Open chat
+        final ImageButton chatButton = (ImageButton) findViewById(R.id.chatButton);
+        chatButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(mCtx, ChatActivity.class);
+                intent.putExtra("EXTRA_USER_EMAIL", mUserEmail);
+                startActivity(intent);
             }
         });
 
