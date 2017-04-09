@@ -1,16 +1,31 @@
 package fr.ece.ferminmoreno.finalproject;
 
+import android.*;
+import android.Manifest;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,10 +37,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-        import java.util.List;
+import java.util.Date;
+import java.util.List;
 
 public class MatchActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
+
+    private final int CAMERA_ACTIVITY = 1;
+    private final int MAP_ACTIVITY = 0;
 
     Spinner style1;
     Spinner style2;
@@ -52,6 +74,13 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
     Button setPlus2;
     Button scorePlus1;
     Button scorePlus2;
+    private ImageButton btnCam;
+
+    private String mCurrentPhotoPath;
+    private ImageView capturedImage;
+
+    boolean CameraAccepted = true;
+    boolean WriteAccepted = true;
 
     EditText player1;
     EditText player2;
@@ -59,16 +88,23 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
     private String matchKey;
     private DatabaseReference mDatabase;
     private String mUserId;
+    private String mUserEmail;
     private Match match;
+    private Context mCtx;
+    private boolean aux;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_match);
 
+        aux = false;
         matchKey = getIntent().getStringExtra("EXTRA_MATCH_ID");
         mUserId = getIntent().getStringExtra("EXTRA_USER_ID");
+        mUserEmail = getIntent().getStringExtra("EXTRA_USER_EMAIL");
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mCtx = this;
 
         set1 = (EditText) findViewById(R.id.setsValue1);
         set2 = (EditText) findViewById(R.id.setsValue2);
@@ -78,13 +114,57 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         player1 = (EditText) findViewById(R.id.playerName1);
         player2 = (EditText) findViewById(R.id.playerName2);
 
+        // Back button
+        if(getSupportActionBar() != null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        // Remove items via the Button
+        final ImageButton buttonRemove = (ImageButton) findViewById(R.id.removeButton);
+        buttonRemove.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(mCtx, MainActivity.class);
+                startActivity(intent);
+                mDatabase.child("users").child(mUserId).child("matches").child(matchKey).removeValue();
+                aux = true;
+            }
+        });
+
+        // Open chat
+        final ImageButton chatButton = (ImageButton) findViewById(R.id.chatButton);
+        chatButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(mCtx, ChatActivity.class);
+                intent.putExtra("EXTRA_USER_EMAIL", mUserEmail);
+                startActivity(intent);
+            }
+        });
+
+        // Open maps
+        final ImageButton buttonMaps = (ImageButton) findViewById(R.id.mapsButton);
+        buttonMaps.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(mCtx, MapsActivity.class);
+                intent.putExtra("latitude", match.getLatitude()+"");
+                intent.putExtra("longitude", match.getLongitude()+"");
+                startActivityForResult(intent, MAP_ACTIVITY);
+            }
+        });
+
         // Attach a listener to read the data at our posts reference
         mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
                 .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                match = dataSnapshot.getValue(Match.class);
-                setValues(match);
+                if(!aux) {
+                    match = dataSnapshot.getValue(Match.class);
+                    setValues(match);
+                } else{
+                    match = new Match("","",0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 1, 1);
+                    setValues(match);
+                }
             }
 
             @Override
@@ -100,6 +180,26 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         setPlus2 = (Button) findViewById(R.id.setPlus2);
         scorePlus1 = (Button) findViewById(R.id.scorePlus1);
         scorePlus2 = (Button) findViewById(R.id.scorePlus2);
+        btnCam = (ImageButton) findViewById(R.id.picButton);
+
+        capturedImage = (ImageView) findViewById(R.id.capturedImage);
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_DENIED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_DENIED ) {
+            requestPermissions(new String[] {android.Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE}, 200);
+        }
+
+        btnCam.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(CameraAccepted && WriteAccepted)
+                    openCamera();
+            }
+        });
+
 
         setMinus1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -210,8 +310,10 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         player1.addTextChangedListener ( new TextWatcher () {
 
             public void afterTextChanged ( Editable s ) {
-                mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
-                        .child("player1").setValue(s.toString());
+                if(!aux) {
+                    mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                            .child("player1").setValue(s.toString());
+                }
             }
 
             public void beforeTextChanged ( CharSequence s, int start, int count, int after ) {
@@ -225,9 +327,11 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         player2.addTextChangedListener ( new TextWatcher () {
 
             public void afterTextChanged ( Editable s ) {
-                mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
-                        .child("player2").setValue(s.toString());
-                Log.d("TEXT_CHANGE", s.toString());
+                if(!aux) {
+                    mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                            .child("player2").setValue(s.toString());
+                    Log.d("TEXT_CHANGE", s.toString());
+                }
             }
 
             public void beforeTextChanged ( CharSequence s, int start, int count, int after ) {
@@ -238,6 +342,71 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
 
             }
         });
+
+
+
+
+    }
+
+    private void openCamera() {
+        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        if(intent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error :(
+                CharSequence text = "Error";
+                Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+            }
+            if (photoFile != null) {
+                Uri photoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        new ContentValues());
+
+                //intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, photoUri);
+                startActivityForResult(intent, CAMERA_ACTIVITY);
+            }
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        Log.d("ACTIVITY:", requestCode+"");
+        if (resultCode == RESULT_OK && requestCode == CAMERA_ACTIVITY) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            capturedImage.setImageBitmap(imageBitmap);
+        }
+        else if (resultCode == RESULT_OK && requestCode == MAP_ACTIVITY){
+
+            Double latitude = Double.parseDouble(data.getStringExtra("latitude"));
+            Double longitude = Double.parseDouble(data.getStringExtra("longitude"));
+
+            mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                    .child("latitude").setValue(latitude);
+            mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                    .child("longitude").setValue(longitude);
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        //Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG" + timeStamp + "_";
+
+        File newDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        File image = null;
+
+        image = File.createTempFile(
+                imageFileName,  /*prefix*/
+                ".jpg",         /*suffix*/
+                newDir      /*directory*/
+        );
+
+        //Save a file: path for use with ACTION_VIEW Intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 
     @Override
@@ -245,9 +414,32 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         // On selecting a spinner item
         String item = parent.getItemAtPosition(position).toString();
 
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("style1").setValue(style1.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("style2").setValue(style2.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("red1").setValue(red1.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("red2").setValue(red2.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("black1").setValue(black1.getSelectedItemPosition());
+
+        mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                .child("black2").setValue(black2.getSelectedItemPosition());
+
+
+
         String checkRed = parent.getItemAtPosition(0).toString();
-        if (checkRed.equals("Red"))
+        if (checkRed.equals("Red") && view != null)
             ((TextView) view).setTextColor(Color.RED);
+
+
 
         // Showing selected spinner item
         // Toast.makeText(parent.getContext(), "Selected: " + item, Toast.LENGTH_LONG).show();
@@ -342,6 +534,39 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
             player1.setText(match.getPlayer1());
             player2.setText(match.getPlayer2());
         }
+
+        style1.setSelection(match.getStyle1());
+        style2.setSelection(match.getStyle2());
+        red1.setSelection(match.getRed1());
+        red2.setSelection(match.getRed2());
+        black1.setSelection(match.getBlack1());
+        black2.setSelection(match.getBlack2());
+
+
     }
 
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == android.R.id.home){
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+
+        switch(permsRequestCode){
+            case 200:
+                CameraAccepted = grantResults[0]==PackageManager.PERMISSION_GRANTED;
+                WriteAccepted = grantResults[1]==PackageManager.PERMISSION_GRANTED;
+                break;
+
+
+
+        }
+
+    }
 }

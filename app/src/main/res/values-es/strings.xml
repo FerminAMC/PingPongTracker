@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ping Pong Tracker</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- LogIn strings-->
+    <string name="password_hint">Contraseña</string>
+    <string name="email_hint">Correo</string>
+    <string name="sign_up_button_label">Crear cuenta</string>
+    <string name="signup_error_message">Por favor asegurese de poner su correo y contraseña!</string>
+    <string name="signup_error_title">Error!</string>
+    <string name="signup_success">Cuenta creada con éxito! Ahora puede iniciar sesión.</string>
+    <string name="login_error_message">Por favor asegurese de poner un correo y contraseña!</string>
+    <string name="login_error_title">Error!</string>
+    <string name="login_button_label">Iniciar sesión</string>
+    <string name="sign_up_text">Crear cuenta!</string>
+    <string name="title_activity_login">Iniciar sesión</string>
+    <string name="add_item">Nueva Partida</string>
+    <string name="delete_item">Eliminar Partida</string>
+    <string name="action_logout">Cerrar sesión</string>
+    <string name="title_activity_maps">Mapa</string>
+    <string name="open_maps">Ver Ubicación</string>
+
+    <!-- Matches -->
+    <string name="score">Puntaje</string>
+    <string name="set">Set</string>
+    <string name="style">Estilo</string>
+    <string name="paddle">Paleta</string>
+    <string name="player_1">Jugador 1</string>
+    <string name="player_2">Jugador 2</string>
+    <!-- Chat -->
+    <string name="send">Enviar</string>
+</resources>
