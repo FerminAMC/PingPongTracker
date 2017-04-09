@@ -33,4 +33,7 @@
     <string name="player_1">Player 1</string>
     <string name="player_2">Player 2</string>
     <string name="take_pic">Take Picture</string>
+
+    <!-- Chat -->
+    <string name="send">Send</string>
 </resources>
