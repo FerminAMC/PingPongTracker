@@ -7,7 +7,7 @@
     <string name="action_settings">Settings</string>
 
     <!-- LogIn strings-->
-    <string name="password_hint">Password</string>
+    <string name="password_hint_en">Password</string>
     <string name="email_hint">Email</string>
     <string name="sign_up_button_label">Sign Up</string>
     <string name="signup_error_message">Please make sure you enter an email address and password!</string>
@@ -24,4 +24,5 @@
     <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_maps">Map</string>
     <string name="open_maps">View Location</string>
+    <string name="take_pic">Take Picture</string>
 </resources>
