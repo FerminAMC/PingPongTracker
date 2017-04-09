@@ -46,6 +46,9 @@ import java.util.List;
 
 public class MatchActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
+    private final int CAMERA_ACTIVITY = 1;
+    private final int MAP_ACTIVITY = 0;
+
     Spinner style1;
     Spinner style2;
     Spinner red1;
@@ -131,7 +134,9 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
         buttonMaps.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent(mCtx, MapsActivity.class);
-                startActivity(intent);
+                intent.putExtra("latitude", match.getLatitude()+"");
+                intent.putExtra("longitude", match.getLongitude()+"");
+                startActivityForResult(intent, MAP_ACTIVITY);
             }
         });
 
@@ -347,16 +352,28 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
                         new ContentValues());
 
                 //intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, photoUri);
-                startActivityForResult(intent, 1);
+                startActivityForResult(intent, CAMERA_ACTIVITY);
             }
         }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
+
+        Log.d("ACTIVITY:", requestCode+"");
+        if (resultCode == RESULT_OK && requestCode == CAMERA_ACTIVITY) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             capturedImage.setImageBitmap(imageBitmap);
+        }
+        else if (resultCode == RESULT_OK && requestCode == MAP_ACTIVITY){
+
+            Double latitude = Double.parseDouble(data.getStringExtra("latitude"));
+            Double longitude = Double.parseDouble(data.getStringExtra("longitude"));
+
+            mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                    .child("latitude").setValue(latitude);
+            mDatabase.child("users").child(mUserId).child("matches").child(matchKey)
+                    .child("longitude").setValue(longitude);
         }
     }
 
@@ -407,7 +424,7 @@ public class MatchActivity extends AppCompatActivity implements AdapterView.OnIt
 
 
         String checkRed = parent.getItemAtPosition(0).toString();
-        if (checkRed.equals("Red"))
+        if (checkRed.equals("Red") && view != null)
             ((TextView) view).setTextColor(Color.RED);
 
 
